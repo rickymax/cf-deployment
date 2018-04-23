@@ -1,0 +1,70 @@
+- type: replace
+  path: /instance_groups/name=diego-cell/jobs/-
+  value:
+    name: bosh-dns-adapter
+    properties:
+      dnshttps:
+        client:
+          tls: ((cf_app_sd_client_tls))
+        server:
+          ca: ((cf_app_sd_ca.ca))
+    release: cf-app-sd
+- type: replace
+  path: /instance_groups/-
+  value:
+    azs:
+    - z1
+    instances: 1
+    jobs:
+    - name: service-discovery-controller
+      properties:
+        dnshttps:
+          client:
+            ca: ((cf_app_sd_ca.ca))
+          server:
+            tls: ((cf_app_sd_server_tls))
+      release: cf-app-sd
+    name: service-discovery
+    networks:
+    - name: default
+    stemcell: default
+    vm_type: minimal
+- type: replace
+  path: /instance_groups/name=diego-cell/jobs/name=route_emitter/properties/internal_routes?
+  value:
+    enabled: true
+- type: replace
+  path: /variables/-
+  value:
+    name: cf_app_sd_ca
+    options:
+      common_name: service-discovery-controller.service.cf.internal
+      is_ca: true
+    type: certificate
+- type: replace
+  path: /variables/-
+  value:
+    name: cf_app_sd_server_tls
+    options:
+      ca: cf_app_sd_ca
+      common_name: service-discovery-controller.service.cf.internal
+      extended_key_usage:
+      - server_auth
+    type: certificate
+- type: replace
+  path: /variables/-
+  value:
+    name: cf_app_sd_client_tls
+    options:
+      ca: cf_app_sd_ca
+      common_name: service-discovery-controller.service.cf.internal
+      extended_key_usage:
+      - client_auth
+    type: certificate
+- type: replace
+  path: /releases/-
+  value:
+    name: cf-app-sd
+    sha1: d0a22be980ddf2e0484489208c7de7719c6a0c30
+    url: https://bosh.io/d/github.com/cloudfoundry/cf-app-sd-release?v=0.4.0
+    version: 0.4.0

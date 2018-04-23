@@ -1,0 +1,154 @@
+- type: replace
+  path: /instance_groups/-
+  value:
+    azs:
+    - z1
+    - z2
+    instances: 1
+    jobs:
+    - consumes:
+        consul_client:
+          from: consul_client_link
+        consul_common:
+          from: consul_common_link
+        consul_server: nil
+      name: consul_agent_windows
+      properties:
+        consul:
+          agent:
+            dns_config:
+              service_ttl: 10s
+            node_name_includes_id: true
+        syslog_daemon_config:
+          enable: false
+      release: consul
+    - name: garden-windows
+      properties:
+        syslog_daemon_config:
+          enable: false
+      release: garden-windows
+    - name: rep_windows
+      properties:
+        diego:
+          executor:
+            ca_certs_for_downloads: ((blobstore_tls.ca))
+          rep:
+            bbs:
+              ca_cert: ((diego_bbs_client.ca))
+              client_cert: ((diego_bbs_client.certificate))
+              client_key: ((diego_bbs_client.private_key))
+            ca_cert: ((diego_rep_agent.ca))
+            enable_legacy_api_endpoints: false
+            locket:
+              api_location: locket.service.cf.internal:8891
+            preloaded_rootfses:
+            - windows2012R2:/tmp/windows2012R2
+            require_tls: true
+            server_cert: ((diego_rep_agent.certificate))
+            server_key: ((diego_rep_agent.private_key))
+        loggregator:
+          ca_cert: ((loggregator_tls_metron.ca))
+          cert: ((loggregator_tls_metron.certificate))
+          key: ((loggregator_tls_metron.private_key))
+          use_v2_api: true
+        syslog_daemon_config:
+          enable: false
+        tls:
+          ca_cert: ((diego_rep_agent.ca))
+          cert: ((diego_rep_agent.certificate))
+          key: ((diego_rep_agent.private_key))
+      release: diego
+    - name: route_emitter_windows
+      properties:
+        diego:
+          route_emitter:
+            bbs:
+              ca_cert: ((diego_bbs_client.ca))
+              client_cert: ((diego_bbs_client.certificate))
+              client_key: ((diego_bbs_client.private_key))
+            local_mode: true
+        loggregator:
+          ca_cert: ((loggregator_tls_metron.ca))
+          cert: ((loggregator_tls_metron.certificate))
+          key: ((loggregator_tls_metron.private_key))
+          use_v2_api: true
+        tcp:
+          enabled: true
+        uaa:
+          ca_cert: ((uaa_ca.certificate))
+          client_secret: ((uaa_clients_tcp_emitter_secret))
+      release: diego
+    - name: metron_agent_windows
+      properties:
+        loggregator:
+          tls:
+            ca_cert: ((loggregator_tls_metron.ca))
+            metron:
+              cert: ((loggregator_tls_metron.certificate))
+              key: ((loggregator_tls_metron.private_key))
+        metron_agent:
+          deployment: ((system_domain))
+        syslog_daemon_config:
+          enable: false
+      release: loggregator
+    - name: enable_ssh
+      release: windows-utilities
+    name: windows-cell
+    networks:
+    - name: default
+    stemcell: windows2012R2
+    vm_extensions:
+    - 100GB_ephemeral_disk
+    vm_type: small-highmem
+- type: replace
+  path: /releases/-
+  value:
+    name: garden-windows
+    sha1: 169c77ad4f9cc431dfb00a9657245e59c2d590b1
+    url: https://bosh.io/d/github.com/cloudfoundry-incubator/garden-windows-bosh-release?v=0.13.0
+    version: 0.13.0
+- type: replace
+  path: /releases/name=windows-utilities?
+  value:
+    name: windows-utilities
+    sha1: 4cb16591fb2dce238df87962873f5224f5fe5c8a
+    url: https://bosh.io/d/github.com/cloudfoundry-incubator/windows-utilities-release?v=0.6.0
+    version: 0.6.0
+- type: replace
+  path: /stemcells/-
+  value:
+    alias: windows2012R2
+    os: windows2012R2
+    version: "1200.13"
+- type: replace
+  path: /instance_groups/name=api/jobs/name=cloud_controller_ng/properties/cc/stacks/name=windows2012R2?
+  value:
+    description: Windows Server 2012 R2
+    name: windows2012R2
+- type: replace
+  path: /instance_groups/name=api/jobs/name=cloud_controller_ng/properties/cc/install_buildpacks/-
+  value:
+    name: hwc_buildpack
+    package: hwc-buildpack
+- type: replace
+  path: /instance_groups/name=api/jobs/-
+  value:
+    name: hwc-buildpack
+    release: hwc-buildpack
+- type: replace
+  path: /instance_groups/name=api/jobs/name=cloud_controller_ng/properties/cc/install_buildpacks/name=hwc_buildpack?
+  value:
+    name: hwc_buildpack
+    package: hwc-buildpack
+- type: replace
+  path: /instance_groups/name=api/jobs/name=hwc-buildpack?
+  value:
+    name: hwc-buildpack
+    release: hwc-buildpack
+- type: replace
+  path: /releases/name=hwc-buildpack?
+  value:
+    name: hwc-buildpack
+    sha1: 41652f8bed61846ac09ce832fdc70c0a114de651
+    url: https://bosh.io/d/github.com/cloudfoundry-incubator/hwc-buildpack-release?v=2.3.13
+    version: 2.3.13
