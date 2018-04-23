@@ -389,6 +389,21 @@ instance_groups:
             - routing.router_groups.write
             - scim.read
             - scim.write
+          - name: AdvAdmin
+            password: "((uaa_user_advadmin_secret))"
+            groups: [notifications.manage, zones.write, actuator.read, cloud_controller.read, zones.read, uaa.offline_token, password.write, notification_preferences.write, scim.me, notifications.write, oauth.approvals, openid, doppler.firehose, console.support, notification_preferences.read, emails.write, scim.read, user_attributes, notification_templates.write, routing.router_groups.read, approvals.me, cloud_controller.write, notification_templates.read, scim.write, console.admin, roles, uaa.user, cloud_controller.user, cloud_controller_service_permissions.read, cloud_controller.admin, profile, dashboard.user]
+          - name: DevOpsAdmin
+            password: "((uaa_user_devopsadmin_secret))"
+            groups: [notifications.manage, zones.write, actuator.read, cloud_controller.read, zones.read, uaa.offline_token, password.write, notification_preferences.write, scim.me, notifications.write, oauth.approvals, openid, doppler.firehose, console.support, notification_preferences.read, emails.write, scim.read, user_attributes, notification_templates.write, routing.router_groups.read, approvals.me, cloud_controller.write, notification_templates.read, scim.write, console.admin, roles, uaa.user, cloud_controller.user, cloud_controller_service_permissions.read, cloud_controller.admin, profile, dashboard.user]
+          - name: IIIAdmin
+            password: "((uaa_user_iiiadmin_secret))"
+            groups: [notifications.manage, zones.write, actuator.read, cloud_controller.read, zones.read, uaa.offline_token, password.write, notification_preferences.write, scim.me, notifications.write, oauth.approvals, openid, doppler.firehose, console.support, notification_preferences.read, emails.write, scim.read, user_attributes, notification_templates.write, routing.router_groups.read, approvals.me, cloud_controller.write, notification_templates.read, scim.write, console.admin, roles, uaa.user, cloud_controller.user, cloud_controller_service_permissions.read, cloud_controller.admin, profile, dashboard.user]
+          - name: MPAdmin
+            password: "((uaa_user_mpadmin_secret))"
+            groups: [notifications.manage, zones.write, actuator.read, cloud_controller.read, zones.read, uaa.offline_token, password.write, notification_preferences.write, scim.me, notifications.write, oauth.approvals, openid, doppler.firehose, console.support, notification_preferences.read, emails.write, scim.read, user_attributes, notification_templates.write, routing.router_groups.read, approvals.me, cloud_controller.write, notification_templates.read, scim.write, console.admin, roles, uaa.user, cloud_controller.user, cloud_controller_service_permissions.read, cloud_controller.admin, profile, dashboard.user]
+          - name: gAuditor
+            password: "(uaa_user_gauditor_secret())"
+            groups: [cloud_controller.global_auditor]
         jwt:
           policy:
             active_key_id: key-1
@@ -463,6 +478,11 @@ instance_groups:
             authorized-grant-types: refresh_token,client_credentials,password
             scope: clients.read,password.write,clients.secret,clients.write,uaa.admin,scim.write,scim.read
             secret: "((uaa_clients_oss_api_secret))"
+          oss-api-dev:
+            authorities: password.write,uaa.admin,scim.write,scim.read,scim.userids
+            authorized-grant-types: refresh_token,client_credentials,password
+            scope: clients.read,password.write,clients.secret,clients.write,uaa.admin,scim.write,scim.read
+            secret: "((uaa_clients_oss_api_dev_secret))"
           prometheus-firehose:
             authorities: doppler.firehose
             authorized-grant-types: client_credentials,refresh_token
@@ -1366,9 +1386,21 @@ variables:
   type: password
 - name: uaa_clients_oss_api_secret
   type: password
+- name: uaa_clients_oss_api_dev_secret
+  type: password
 - name: uaa_clients_prometheus_firehose_secret
   type: password
 - name: uaa_clients_prometheus_cf_secret
+  type: password
+- name: uaa_user_advadmin_secret
+  type: password
+- name: uaa_user_devopsadmin_secret
+  type: password
+- name: uaa_user_iiiadmin_secret
+  type: password
+- name: uaa_user_mpadmin_secret
+  type: password
+- name: uaa_user_gauditor_secret
   type: password
 - name: diego_bbs_encryption_keys_passphrase
   type: password
