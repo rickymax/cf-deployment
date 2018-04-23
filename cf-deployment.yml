@@ -453,6 +453,26 @@ instance_groups:
             authorities: routing.routes.read
             authorized-grant-types: client_credentials
             secret: "((uaa_clients_tcp_router_secret))"
+          devops:
+            authorities: password.write,uaa.admin,scim.write,scim.read
+            authorized-grant-types: refresh_token,client_credentials,password
+            scope: clients.read,password.write,clients.secret,clients.write,uaa.admin,scim.write,scim.read
+            secret: "((uaa_clients_devops_secret))"
+          oss-api:
+            authorities: password.write,uaa.admin,scim.write,scim.read,scim.userids
+            authorized-grant-types: refresh_token,client_credentials,password
+            scope: clients.read,password.write,clients.secret,clients.write,uaa.admin,scim.write,scim.read
+            secret: "((uaa_clients_oss_api_secret))"
+          prometheus-firehose:
+            authorities: doppler.firehose
+            authorized-grant-types: client_credentials,refresh_token
+            scope: uaa.none
+            secret: "((uaa_clients_prometheus_firehose_secret))"
+          prometheus-cf:
+            authorities: cloud_controller.admin
+            authorized-grant-types: client_credentials,refresh_token
+            scope: uaa.none
+            secret: "((uaa_clients_prometheus_cf_secret))"
       uaadb:
         databases:
         - name: uaa
@@ -1341,6 +1361,14 @@ variables:
 - name: uaa_clients_ssh-proxy_secret
   type: password
 - name: uaa_clients_tcp_router_secret
+  type: password
+- name: uaa_clients_devops_secret
+  type: password
+- name: uaa_clients_oss_api_secret
+  type: password
+- name: uaa_clients_prometheus_firehose_secret
+  type: password
+- name: uaa_clients_prometheus_cf_secret
   type: password
 - name: diego_bbs_encryption_keys_passphrase
   type: password
