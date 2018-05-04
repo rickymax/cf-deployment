@@ -10,34 +10,79 @@ azs:
     availability_zone: ((az3_zone))
 
 vm_types:
+- name: minimal-lowmem
+  cloud_properties:
+    instance_type: ecs.n4.small
+    ephemeral_disk: {size: "20_480"}
+    system_disk: {size: "20_480"}
 - name: minimal
   cloud_properties:
     instance_type: ecs.mn4.small
-    ephemeral_disk: {size: "51_200"}
+    ephemeral_disk: {size: "20_480"}
+    system_disk: {size: "20_480"}
+- name: small-lowmem
+  cloud_properties:
+    instance_type: ecs.sn1ne.large
+    ephemeral_disk: {size: "20_480"}
+    system_disk: {size: "20_480"}
 - name: small
   cloud_properties:
-    instance_type: ecs.sn2.medium
-    ephemeral_disk: {size: "51_200"}
-- name: default
-  cloud_properties:
-    instance_type: ecs.sn2.medium
-    ephemeral_disk: {size: "51_200"}
+    instance_type: ecs.sn2ne.large
+    ephemeral_disk: {size: "20_480"}
+    system_disk: {size: "20_480"}
 - name: small-highmem
   cloud_properties:
-    instance_type: ecs.sn2ne.xlarge
+    instance_type: ecs.se1.large
+    ephemeral_disk: {size: "20_480"}
+    system_disk: {size: "20_480"}
+- name: medium-lowmem
+  cloud_properties:
+    instance_type: ecs.sn1ne.xlarge
+    ephemeral_disk: {size: "20_480"}
+    system_disk: {size: "40_960"}
+- name: medium
+  cloud_properties:
+    instance_type: ecs.cm4.xlarge
+    ephemeral_disk: {size: "20_480"}
+    system_disk: {size: "40_960"}
+- name: medium-highmem
+  cloud_properties:
+    instance_type: ecs.ce4.xlarge
+    ephemeral_disk: {size: "20_480"}
+    system_disk: {size: "102_400"}
+- name: large
+  cloud_properties:
+    instance_type: ecs.g5.2xlarge
+    ephemeral_disk: {size: "20_480"}
+    system_disk: {size: "40_960"}
+- name: default
+  cloud_properties:
+    instance_type: ecs.sn2ne.large
     ephemeral_disk: {size: "51_200"}
+    system_disk: {size: "20_480"}
 - name: compiler
   cloud_properties:
-    instance_type: ecs.sn1.large
-    ephemeral_disk: {size: "51_200"}
+    instance_type: ecs.mn4.small
+    ephemeral_disk: {size: "20_480"}
+    system_disk: {size: "20_480"}
 
 disk_types:
 - name: 5GB
-  disk_size: 20_480
+  disk_size: 20480
 - name: 10GB
-  disk_size: 20_480
+  disk_size: 20480
+- name: 20GB
+  disk_size: 20480
+- name: 40GB
+  disk_size: 40960
 - name: 100GB
-  disk_size: 102_400
+  disk_size: 102400
+- name: 128GB
+  disk_size: 131072
+- name: 500GB
+  disk_size: 512000
+- name: 1TB
+  disk_size: 1048576
 
 vm_extensions:
 - name: 5GB_ephemeral_disk
@@ -46,6 +91,12 @@ vm_extensions:
 - name: 10GB_ephemeral_disk
   cloud_properties:
     ephemeral_disk: {size: "20_480"}
+- name: 20GB_ephemeral_disk
+  cloud_properties:
+    ephemeral_disk: {size: "20_480"}
+- name: 40GB_ephemeral_disk
+  cloud_properties:
+    ephemeral_disk: {size: "40_960"}
 - name: 50GB_ephemeral_disk
   cloud_properties:
     ephemeral_disk: {size: "50_120"}
@@ -58,6 +109,7 @@ vm_extensions:
 - name: 1TB_ephemeral_disk
   cloud_properties:
     ephemeral_disk: {size: "1024_000"}
+
 - name: cf-router-network-properties
   cloud_properties:
     slbs: ((http_slb_id_array))
@@ -65,6 +117,11 @@ vm_extensions:
   cloud_properties:
     slbs: ((tcp_slb_id_array))
 - name: diego-ssh-proxy-network-properties
+  cloud_properties:
+    slbs: ((diego_slb_id_array))
+- name: rabbitmq-network-properties
+  cloud_properties:
+    slbs: ((rabbitmq_slb_id_array))
 
 networks:
 - name: default
@@ -95,11 +152,67 @@ networks:
     cloud_properties:
       vswitch_id: ((az3_vswitch_id))
       security_group_ids: [((security_group_id_3))]
+- name: rabbitmq-service
+  type: manual
+  subnets:
+  - range: ((az1_vswitch_range_2))
+    gateway: ((az1_vswitch_gateway_2))
+    az: z1
+    dns: [8.8.8.8]
+    cloud_properties:
+      vswitch_id: ((az1_vswitch_id_2))
+      security_group_ids:
+        - ((security_group_id_1))
+        - ((security_group_id_2))
+  - range: ((az2_vswitch_range_2))
+    gateway: ((az2_vswitch_gateway_2))
+    az: z2
+    dns: [8.8.8.8]
+    cloud_properties:
+      vswitch_id: ((az2_vswitch_id_2))
+      security_group_ids:
+        - ((security_group_id_1))
+        - ((security_group_id_2))
+  - range: ((az3_vswitch_range_2))
+    gateway: ((az3_vswitch_gateway_2))
+    az: z3
+    dns: [8.8.8.8]
+    cloud_properties:
+      vswitch_id: ((az3_vswitch_id_2))
+      security_group_ids: [((security_group_id_3))]
+- name: db-service
+  type: manual
+  subnets:
+  - range: ((az1_vswitch_range_3))
+    gateway: ((az1_vswitch_gateway_3))
+    az: z1
+    dns: [8.8.8.8]
+    cloud_properties:
+      vswitch_id: ((az1_vswitch_id_3))
+      security_group_ids:
+        - ((security_group_id_1))
+        - ((security_group_id_2))
+  - range: ((az2_vswitch_range_3))
+    gateway: ((az2_vswitch_gateway_3))
+    az: z2
+    dns: [8.8.8.8]
+    cloud_properties:
+      vswitch_id: ((az2_vswitch_id_3))
+      security_group_ids:
+        - ((security_group_id_1))
+        - ((security_group_id_2))
+  - range: ((az3_vswitch_range_3))
+    gateway: ((az3_vswitch_gateway_3))
+    az: z3
+    dns: [8.8.8.8]
+    cloud_properties:
+      vswitch_id: ((az3_vswitch_id_3))
+      security_group_ids: [((security_group_id_3))]
 - name: vip
   type: vip
 
 compilation:
-  workers: 5
+  workers: 3
   reuse_compilation_vms: true
   az: z1
   vm_type: compiler
