@@ -145,40 +145,27 @@ instance_groups:
             cert: "((adapter_rlp_tls.certificate))"
             key: "((adapter_rlp_tls.private_key))"
             cn: reverselogproxy
-- name: database
-  migrated_from:
-  - name: mysql
-  - name: singleton-database
-  azs:
-  - z1
-  persistent_disk_type: 10GB
-  instances: 1
-  vm_type: small
+- name: mysql
+  azs: [z1, z2, z3]
+  instances: 3
+  persistent_disk_type: 100GB
+  vm_type: small-highmem
   stemcell: default
   update:
     serial: true
   networks:
   - name: default
   jobs:
-  - name: consul_agent
-    release: consul
-    consumes:
-      consul_common: {from: consul_common_link}
-      consul_server: nil
-      consul_client: {from: consul_client_link}
   - name: mysql
     release: cf-mysql
     properties:
       cf_mysql:
         mysql:
           admin_password: "((cf_mysql_mysql_admin_password))"
-          port: 33306
-          binlog_enabled: false
           cluster_health:
             password: "((cf_mysql_mysql_cluster_health_password))"
           galera_healthcheck:
             db_password: "((cf_mysql_mysql_galera_healthcheck_password))"
-            endpoint_username: galera_healthcheck
             endpoint_password: "((cf_mysql_mysql_galera_healthcheck_endpoint_password))"
           seeded_databases:
           - name: cloud_controller
@@ -202,6 +189,42 @@ instance_groups:
           - name: locket
             username: locket
             password: "((locket_database_password))"
+  - name: smoke-tests-user
+    release: cf-mysql
+    properties:
+      cf_mysql:
+        smoke_tests:
+          db_password: "((cf_mysql_smoke_tests_db_password))"
+
+- name: mysql_arbitrator
+  azs: [z3]
+  instances: 1
+  vm_type: minimal
+  stemcell: default
+  update:
+    serial: true
+  networks:
+  - name: default
+  jobs:
+  - release: cf-mysql
+    name: arbitrator
+    properties:
+      cf_mysql:
+        mysql:
+          admin_password: "((cf_mysql_mysql_admin_password))"
+          galera_healthcheck:
+            endpoint_password: "((cf_mysql_mysql_galera_healthcheck_endpoint_password))"
+
+- name: mysql_proxy
+  azs: [z1, z2]
+  instances: 2
+  vm_type: minimal
+  stemcell: default
+  update:
+    serial: true
+  networks:
+  - name: default
+  jobs:
   - name: proxy
     release: cf-mysql
     properties:
@@ -210,6 +233,105 @@ instance_groups:
           api_password: "((cf_mysql_proxy_api_password))"
           consul_enabled: true
           consul_service_name: "sql-db"
+    provides:
+      mysql-database:
+        as: mysql-database
+        shared: true
+  - name: route_registrar
+    release: routing
+    consumes:
+      nats: {from: nats, deployment: cf}
+    properties:
+      route_registrar:
+        routes:
+        - name: cf-mysql-proxy
+          port: 8080 # must match the value of 'cf_mysql.proxy.api_port'
+          registration_interval: 10s
+          uris:
+          - &proxy_base_uri proxy-wise-mysql.((system_domain))
+          prepend_instance_index: true
+        - name: cf-mysql-proxy-aggregator
+          port: 8082 # must match the value of 'cf_mysql.proxy.api_aggregator_port'
+          registration_interval: 10s
+          uris:
+          - *proxy_base_uri
+          # The switchboard aggregator page assumes there is only a single route registered for the proxies
+  - name: consul_agent
+    release: consul
+    consumes:
+      consul_common: {from: consul_common_link, deployment: cf}
+      consul_server: {from: consul_server_link, deployment: cf}
+      consul_client: {from: consul_client_link, deployment: cf}
+
+- name: mysql_bootstrap-vm
+  lifecycle: errand
+  azs: [z1]
+  instances: 1
+  vm_type: minimal
+  stemcell: default
+  update:
+    serial: true
+  networks:
+  - name: default
+  jobs:
+  - {release: cf-mysql, name: bootstrap}
+
+- name: mysql_rejoin-unsafe-vm
+  lifecycle: errand
+  azs: [z1]
+  instances: 1
+  vm_type: minimal
+  stemcell: default
+  update:
+    serial: true
+  networks:
+  - name: default
+  jobs:
+  - {release: cf-mysql, name: rejoin-unsafe}
+
+- name: mysql_verify-cluster-schemas-vm
+  lifecycle: errand
+  azs: [z1]
+  instances: 1
+  vm_type: minimal
+  stemcell: default
+  update:
+    serial: true
+  networks:
+  - name: default
+  jobs:
+  - name: verify-cluster-schemas
+    release: cf-mysql
+    properties:
+      cf_mysql:
+        mysql:
+          admin_password: "((cf_mysql_mysql_admin_password))"
+          galera_healthcheck:
+            endpoint_password: "((cf_mysql_mysql_galera_healthcheck_endpoint_password))"
+
+- name: mysql_smoke-tests-vm
+  lifecycle: errand
+  azs: [z1]
+  instances: 1
+  vm_type: default
+  stemcell: default
+  update:
+    serial: true
+  networks:
+  - name: default
+  jobs:
+  - name: smoke-tests
+    release: cf-mysql
+    properties:
+      cf_mysql:
+        mysql:
+          admin_password: "((cf_mysql_mysql_admin_password))"
+        proxy:
+          api_password: "((cf_mysql_proxy_api_password))"
+        smoke_tests:
+          db_password: "((cf_mysql_smoke_tests_db_password))"
+          standalone_tests_only: true
+
 - name: diego-api
   migrated_from:
   - name: diego-bbs
@@ -1290,6 +1412,8 @@ variables:
 - name: cf_mysql_mysql_galera_healthcheck_endpoint_password
   type: password
 - name: cf_mysql_mysql_galera_healthcheck_password
+  type: password
+- name: cf_mysql_smoke_tests_db_password
   type: password
 - name: cf_mysql_proxy_api_password
   type: password
