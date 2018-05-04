@@ -1092,7 +1092,8 @@ instance_groups:
   azs:
   - z1
   - z2
-  instances: 2
+  - z3
+  instances: 3
   vm_type: small-highmem
   vm_extensions:
   - 100GB_ephemeral_disk
