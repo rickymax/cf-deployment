@@ -7,7 +7,7 @@
 
 - type: replace
   path: /instance_groups/name=diego-cell/vm_type?
-  value: small-highmem-100GB-ephemeral-disk
+  value: medium-highmem-100GB-ephemeral-disk
 
 - type: replace
   path: /instance_groups/name=api/vm_type?
