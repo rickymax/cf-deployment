@@ -524,7 +524,7 @@ instance_groups:
             password: "((uaa_user_mpadmin_secret))"
             groups: [notifications.manage, zones.write, actuator.read, cloud_controller.read, zones.read, uaa.offline_token, password.write, notification_preferences.write, scim.me, notifications.write, oauth.approvals, openid, doppler.firehose, console.support, notification_preferences.read, emails.write, scim.read, user_attributes, notification_templates.write, routing.router_groups.read, approvals.me, cloud_controller.write, notification_templates.read, scim.write, console.admin, roles, uaa.user, cloud_controller.user, cloud_controller_service_permissions.read, cloud_controller.admin, profile, dashboard.user]
           - name: gAuditor
-            password: "(uaa_user_gauditor_secret())"
+            password: "((uaa_user_gauditor_secret))"
             groups: [cloud_controller.global_auditor]
         jwt:
           policy:
