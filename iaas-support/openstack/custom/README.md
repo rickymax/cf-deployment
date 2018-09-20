@@ -13,7 +13,7 @@ bosh -e spacex update-cloud-config \
     -v network_cf3=<NET_ID_CF3> \
     -v network_rmq=<NET_ID_RMQ> \
     -v network_public=<NET_ID_PUBLIC> \
-    -v dns=[<DNS>]
+    -v dns=[<DNS>] \
     /opt/spacex/workspaces/cf-deployment/iaas-support/openstack/custom/cloud-config.yml
 ```
 
