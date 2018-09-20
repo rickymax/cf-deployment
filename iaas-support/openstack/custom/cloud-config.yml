@@ -131,7 +131,7 @@ networks:
 - name: vip
   type: vip
   cloud_properties:
-    net_id: 4bcc39cc-638c-43df-9de2-fe94079179f4
+    net_id: ((network_public))
 
 compilation:
   workers: 3
