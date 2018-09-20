@@ -102,6 +102,22 @@ networks:
     cloud_properties:
       net_id: ((network_cf3))
       security_groups: [WISE-PaaS-nsg]
+- name: rabbitmq-service
+  type: manual
+  subnets:
+  - azs: [z1,z2,z3]
+    range: 10.10.0.0/16
+    reserved: [10.10.0.1-10.10.0.9]
+    static: [10.10.0.10-10.10.0.100]
+    gateway: 10.10.0.1
+    dns: ((dns))
+    cloud_properties:
+      net_id: ((network_rmq))
+      security_groups: [WISE-PaaS-nsg]
+- name: vip
+  type: vip
+  cloud_properties:
+    net_id: 4bcc39cc-638c-43df-9de2-fe94079179f4
 
 compilation:
   workers: 3
