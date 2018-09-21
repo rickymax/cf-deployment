@@ -35,6 +35,12 @@ vm_types:
 - name: medium-highmem-100GB-ephemeral-disk
   cloud_properties:
     instance_type: medium-highmem-100GB-ephemeral-disk
+- name: m1.small
+  cloud_properties:
+    instance_type: m1.small
+- name: m1.medium
+  cloud_properties:
+    instance_type: m1.medium
 
 disk_types:
 - name: 5GB
